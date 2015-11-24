@@ -14,6 +14,7 @@ namespace TransitDataBackend
         //Parsing Program Arguments
         static bool detailedLogging = false;
         static bool downloadRemoteFiles = true;
+        static string fileToUpload = "all";
 
         static void Main(string[] args)
         {
@@ -36,9 +37,9 @@ namespace TransitDataBackend
                 decompressor.DecompressFile(filePath, extractPath, detailedLogging);
             }
             TransitDataBackend.Logging("Starting SQL Insert", true);
-            var dataloader = new SqlInsert();
+            //var dataloader = new SqlInsert();
 
-            dataloader.LoadDataIntoRouteTable(detailedLogging);
+            //dataloader.LoadDataIntoRouteTable(detailedLogging);
 
 
             //truncate the destination table before upload
@@ -46,7 +47,7 @@ namespace TransitDataBackend
             TransitDataBackend.Logging("Starting Data Uploader", true);
             //now upload
             var dataUploader = new DataUploader(detailedLogging);
-            dataUploader.LoadData(detailedLogging);
+            dataUploader.LoadData(detailedLogging, fileToUpload);
         }
         public static void Logging(string log, bool verbose)
         {
@@ -72,6 +73,11 @@ namespace TransitDataBackend
                 {
                     downloadRemoteFiles = false;
                 }
+            }
+
+            if (args.Length > 2)
+            {
+                fileToUpload = args[2];
             }
         }
 

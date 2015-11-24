@@ -61,7 +61,7 @@ namespace TransitDataBackend
         {
             string myDateTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
             databaseConnection.Open();
-            TransitDataBackend.Logging(myDateTime, true);
+            TransitDataBackend.Logging(String.Format("All files finished uploadig at {0}", myDateTime.ToString()), true);
             command.CommandType = CommandType.Text;
             command.CommandText = @"Truncate table batch_load_date " +
                                             "INSERT into dbo.batch_load_date(load_date) " +
@@ -96,7 +96,7 @@ namespace TransitDataBackend
             command.CommandText = "create_slave_tables";
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("table_name", tableName);
-            TransitDataBackend.Logging("Data Uploader: Creating Slave Table " + tableName, true);
+            TransitDataBackend.Logging("Data Uploader: Creating Slave Tables..." + tableName, true);
             command.ExecuteReader();
             command.Parameters.Clear();
             databaseConnection.Close();
@@ -106,7 +106,7 @@ namespace TransitDataBackend
             databaseConnection.Open();
             command.CommandText = "rename_slave_tables";
             command.CommandType = CommandType.StoredProcedure;
-            TransitDataBackend.Logging("Data Uploader: Renaming Slave Tables", true);
+            TransitDataBackend.Logging("Data Uploader: Renaming Slave Tables...", true);
             command.ExecuteReader();
             databaseConnection.Close();
         }
@@ -116,7 +116,7 @@ namespace TransitDataBackend
             command.CommandText = "drop_slave_tables";
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@table_name", tableName);
-            TransitDataBackend.Logging("Data Uploader: Dropping Slave Table " + tableName, true);
+            TransitDataBackend.Logging("Data Uploader: Dropping Slave Tables..." + tableName, true);
             command.ExecuteReader();
             command.Parameters.Clear();
             databaseConnection.Close();
@@ -137,13 +137,30 @@ namespace TransitDataBackend
             command.CommandText = "create_indexes";
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("table_name", tableName);
-            TransitDataBackend.Logging("Data Uploader: Creating Slave Index " + tableName, true);
+            TransitDataBackend.Logging("Data Uploader: Creating Slave Indexes..." + tableName, true);
             command.ExecuteReader();
             command.Parameters.Clear();
             databaseConnection.Close();
         }
-        public void LoadData(bool detailedLogging)
+        public void LoadData(bool detailedLogging, string fileToUpload)
         {
+            List<string> fileArray = new List<string>();
+
+            if (fileToUpload.ToLower().Equals("all"))
+            {
+                string[] tempFileArray = { "calendar", "agency", "routes", "calendar_dates", "trips", "stops", "shapes", "stop_times" };
+                foreach (string tempFile in tempFileArray)
+                {
+                    fileArray.Add(tempFile);
+                }
+            }
+            else
+            {
+                //TODO: check fileToUpload value is acceptable, otherwise skip everything
+                fileArray.Add(fileToUpload);
+            }
+
+
             int i = 1;
             while (i < 4)
             {
@@ -152,8 +169,7 @@ namespace TransitDataBackend
                 try
                 {
 
-                    string[] fileArray = { "calendar", "agency", "routes", "calendar_dates", "trips", "stops", "shapes", "stop_times" };
-                    //string[] fileArray = { "calendar" };
+
                     //initiate the process that will execute the bcp.exe 
                     TransitDataBackend.Logging("Data Uploader: starting BCP Process", detailedLogging);
                     Process bcpProcess;
@@ -220,16 +236,19 @@ namespace TransitDataBackend
                             //rename slave indexes
                             this.RenameSlaveIndexes();
                             //create Directions Table only if fileName is trips
-                            if (fileName.Equals("trips"))
-                            {
-                                this.CreateDirectionTable();
-                            }
+                            //if (fileName.Equals("trips"))
+                            //{
+                            //    this.CreateDirectionTable();
+                            //}
                             standardOutputStringBuilder.Clear();
                             errorOutputStringBuilder.Clear();
+                            TransitDataBackend.Logging(String.Format("{0} file finished uploading", fileName), true);
+                            TransitDataBackend.Logging(String.Format("============================================"), true);
                         }
 
                         //break from while
                         this.updateDateTime();
+
                         break;
                     }
                     catch (Exception ex)
