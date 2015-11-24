@@ -4,3 +4,8 @@ C:\Users\Harry\Documents\GitHub\TransitDataBackend\TransitDataBackend\bin\Debug\
 C:\Users\Harry\Documents\GitHub\TransitDataBackend\TransitDataBackend\obj\Debug\TransitDataBackend.csprojResolveAssemblyReference.cache
 C:\Users\Harry\Documents\GitHub\TransitDataBackend\TransitDataBackend\obj\Debug\TransitDataBackend.exe
 C:\Users\Harry\Documents\GitHub\TransitDataBackend\TransitDataBackend\obj\Debug\TransitDataBackend.pdb
+C:\Users\Turker Kucuk\Documents\GitHub\TransitDataBackend\TransitDataBackend\bin\Debug\TransitDataBackend.exe.config
+C:\Users\Turker Kucuk\Documents\GitHub\TransitDataBackend\TransitDataBackend\obj\Debug\TransitDataBackend.exe
+C:\Users\Turker Kucuk\Documents\GitHub\TransitDataBackend\TransitDataBackend\obj\Debug\TransitDataBackend.pdb
+C:\Users\Turker Kucuk\Documents\GitHub\TransitDataBackend\TransitDataBackend\bin\Debug\TransitDataBackend.exe
+C:\Users\Turker Kucuk\Documents\GitHub\TransitDataBackend\TransitDataBackend\bin\Debug\TransitDataBackend.pdb

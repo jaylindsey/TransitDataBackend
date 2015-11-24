@@ -12,14 +12,15 @@ namespace TransitDataBackend
     class TransitDataBackend
     {
         //Parsing Program Arguments
-        static bool detailedLogging = false;
-        static bool downloadRemoteFiles = true;
-        static string fileToUpload = "all";
+        static bool detailedLogging = true;
+        static bool downloadRemoteFiles = false;
+        static string fileToUpload = "shapes";
 
         static void Main(string[] args)
         {
             //Parse program arguments
-            ParseArguments(args);
+            var parser = new TransitDataBackend();
+            parser.ParseArguments(args);
 
             TransitDataBackend.Logging("Starting Program", true);
 
@@ -36,18 +37,18 @@ namespace TransitDataBackend
                 string extractPath = @"D:\home\site\wwwroot\google_transit\";
                 decompressor.DecompressFile(filePath, extractPath, detailedLogging);
             }
-            TransitDataBackend.Logging("Starting SQL Insert", true);
+            //not needed as we are using bulk upload 
+            //TransitDataBackend.Logging("Starting SQL Insert", true);
             //var dataloader = new SqlInsert();
-
             //dataloader.LoadDataIntoRouteTable(detailedLogging);
-
-
             //truncate the destination table before upload
 
+            
             TransitDataBackend.Logging("Starting Data Uploader", true);
             //now upload
             var dataUploader = new DataUploader(detailedLogging);
             dataUploader.LoadData(detailedLogging, fileToUpload);
+            
         }
         public static void Logging(string log, bool verbose)
         {
@@ -57,7 +58,7 @@ namespace TransitDataBackend
             }
         }
 
-        public static void ParseArguments(string[] args)
+        public void ParseArguments(string[] args)
         {
             if (args.Length > 0)
             {

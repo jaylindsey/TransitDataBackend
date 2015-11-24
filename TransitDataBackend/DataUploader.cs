@@ -30,7 +30,7 @@ namespace TransitDataBackend
         SqlConnection databaseConnection { get; set; }
         SqlCommand command { get; set; }
 
-        //function
+        //functions
         public void TruncateTargetTable(string tableName)
         {
             databaseConnection.Open();
@@ -39,7 +39,6 @@ namespace TransitDataBackend
             command.ExecuteNonQuery();
             databaseConnection.Close();
         }
-        //function
         public void TruncateTargetTable()
         {
             databaseConnection.Open();
@@ -48,7 +47,6 @@ namespace TransitDataBackend
             command.ExecuteNonQuery();
             databaseConnection.Close();
         }
-        //function
         public void TruncateTargetTable(string tableName, string schemaName)
         {
             databaseConnection.Open();
@@ -168,10 +166,6 @@ namespace TransitDataBackend
 
                 try
                 {
-
-
-                    //initiate the process that will execute the bcp.exe 
-                    TransitDataBackend.Logging("Data Uploader: starting BCP Process", detailedLogging);
                     Process bcpProcess;
                     try
                     {
@@ -189,6 +183,8 @@ namespace TransitDataBackend
                             this.DropSlaveTables(fileName);
                             //Create all slave tables
                             this.CreateSlaveTables(fileName);
+                            //initiate the process that will execute the bcp.exe 
+                            TransitDataBackend.Logging("Data Uploader: started bulk copying...", detailedLogging);
                             //initiate the object that will define the properties of this process
                             var bcpProcessStartInfo = new ProcessStartInfo();
                             //define executable name
@@ -236,10 +232,10 @@ namespace TransitDataBackend
                             //rename slave indexes
                             this.RenameSlaveIndexes();
                             //create Directions Table only if fileName is trips
-                            //if (fileName.Equals("trips"))
-                            //{
-                            //    this.CreateDirectionTable();
-                            //}
+                            if (fileName.Equals("trips"))
+                            {
+                                this.CreateDirectionTable();
+                            }
                             standardOutputStringBuilder.Clear();
                             errorOutputStringBuilder.Clear();
                             TransitDataBackend.Logging(String.Format("{0} file finished uploading", fileName), true);

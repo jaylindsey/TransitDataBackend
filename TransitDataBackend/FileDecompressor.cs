@@ -12,6 +12,10 @@ namespace TransitDataBackend
     {
         public void DecompressFile(string compressedFilePath, string extractPath, bool detailedLogging)
         {
+            var workingDirectory = Directory.GetCurrentDirectory();
+
+            TransitDataBackend.Logging("Current directory is " + workingDirectory, true);
+
             string filePath = @"D:\home\site\wwwroot\google_transit\";
             string[] fileArray = { "calendar.txt", "agency.txt", "routes.txt", "calendar_dates.txt", "trips.txt", "stops.txt", "shapes.txt", "stop_times.txt", "readme.txt", "notice.rtf" };
             foreach (string fileName in fileArray)
