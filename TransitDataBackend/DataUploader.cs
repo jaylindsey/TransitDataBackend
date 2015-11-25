@@ -19,60 +19,49 @@ namespace TransitDataBackend
             standardOutputStringBuilder = new StringBuilder(); //add this, you may also need to add using System.Text on top
             errorOutputStringBuilder = new StringBuilder(); //add this, you may also need to add using System.Text on top
             string connectionString = @"Data Source = ffldfgjjcg.database.windows.net; Initial Catalog = metrotransit_db; Persist Security Info = True; User ID = metrotransitadmin; Password = Fyym4jzG9$5?; Timeout = 300";
+            string connectionString2 = @"Data Source = ffldfgjjcg.database.windows.net; Initial Catalog = metrotransit_db; Persist Security Info = True; User ID = metrotransitadmin; Password = Fyym4jzG9$5?";
             databaseConnection = new SqlConnection(connectionString);
+            databaseConnection2 = new SqlConnection(connectionString2);
             command = new SqlCommand();
+            command2 = new SqlCommand();
             command.Connection = databaseConnection;
+            command2.Connection = databaseConnection2;
+
         }
 
         //properties
         StringBuilder standardOutputStringBuilder { get; set; }
         StringBuilder errorOutputStringBuilder { get; set; }
         SqlConnection databaseConnection { get; set; }
+        SqlConnection databaseConnection2 { get; set; }
         SqlCommand command { get; set; }
+        SqlCommand command2 { get; set; }
 
         //functions
-        public void TruncateTargetTable(string tableName)
-        {
-            databaseConnection.Open();
-            command.CommandText = "Truncate table dbo." + tableName;
-            command.CommandType = CommandType.Text;
-            command.ExecuteNonQuery();
-            databaseConnection.Close();
-        }
-        public void TruncateTargetTable()
-        {
-            databaseConnection.Open();
-            command.CommandText = "Truncate table dbo.agency";
-            command.CommandType = CommandType.Text;
-            command.ExecuteNonQuery();
-            databaseConnection.Close();
-        }
-        public void TruncateTargetTable(string tableName, string schemaName)
-        {
-            databaseConnection.Open();
-            command.CommandText = "Truncate table " + schemaName + "." + tableName;
-            command.CommandType = CommandType.Text;
-            command.ExecuteNonQuery();
-            databaseConnection.Close();
-        }
         public void updateDateTime()
         {
-            string myDateTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
-            databaseConnection.Open();
-            TransitDataBackend.Logging(String.Format("All files finished uploadig at {0}", myDateTime.ToString()), true);
-            command.CommandType = CommandType.Text;
-            command.CommandText = @"Truncate table batch_load_date " +
-                                            "INSERT into dbo.batch_load_date(load_date) " +
-                                            "VALUES ('" + myDateTime + "')";
-            command.ExecuteNonQuery();
-            databaseConnection.Close();
+            using (databaseConnection)
+            {
+                string myDateTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
+                databaseConnection.Open();
+                command.Parameters.Clear();
+                TransitDataBackend.Logging(String.Format("All files finished uploadig at {0}", myDateTime.ToString()), true);
+                command.CommandType = CommandType.Text;
+                command.CommandText = @"Truncate table batch_load_date " +
+                                                "INSERT into dbo.batch_load_date(load_date) " +
+                                                "VALUES ('" + myDateTime + "')";
+                command.ExecuteNonQuery();
+            }
         }
         public void CreateDirectionTable()
         {
-            databaseConnection.Open();
-            TransitDataBackend.Logging("Creating Directions Table", true);
-            command.CommandType = CommandType.Text;
-            command.CommandText = @"insert into route_directions_slave (route_id, direction_long, direction_short) 
+            using (databaseConnection)
+            {
+                databaseConnection.Open();
+                command.Parameters.Clear();
+                TransitDataBackend.Logging("Creating Directions Table", true);
+                command.CommandType = CommandType.Text;
+                command.CommandText = @"insert into route_directions_slave (route_id, direction_long, direction_short) 
                                     select 
                                     route_id, 
                                     substring(trip_headsign, 1, iif(charindex(' ', trip_headsign) = 0, len(trip_headsign), (charindex(' ', trip_headsign) - 1))) as direction_long, 
@@ -85,60 +74,74 @@ namespace TransitDataBackend
                                     end as direction_short 
                                     from trips_slave 
                                     group by route_id, substring(trip_headsign, 1, iif(charindex(' ', trip_headsign) = 0, len(trip_headsign), (charindex(' ', trip_headsign) - 1))) ";
-            command.ExecuteNonQuery();
-            databaseConnection.Close();
+                command.ExecuteNonQuery();
+            }
         }
         public void CreateSlaveTables(string tableName)
         {
-            databaseConnection.Open();
-            command.CommandText = "create_slave_tables";
-            command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.AddWithValue("table_name", tableName);
-            TransitDataBackend.Logging("Data Uploader: Creating Slave Tables..." + tableName, true);
-            command.ExecuteReader();
-            command.Parameters.Clear();
-            databaseConnection.Close();
+            using (databaseConnection)
+            {
+                databaseConnection.Open();
+                command.Parameters.Clear();
+                command.CommandText = "create_slave_tables";
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("table_name", tableName);
+                TransitDataBackend.Logging("Data Uploader: Creating Slave Tables..." + tableName, true);
+                command.ExecuteReader();
+                command.Parameters.Clear();
+            }
         }
         public void RenameSlaveTables()
         {
-            databaseConnection.Open();
-            command.CommandText = "rename_slave_tables";
-            command.CommandType = CommandType.StoredProcedure;
-            TransitDataBackend.Logging("Data Uploader: Renaming Slave Tables...", true);
-            command.ExecuteReader();
-            databaseConnection.Close();
+            using (databaseConnection)
+            {
+                databaseConnection.Open();
+                command.CommandText = "rename_slave_tables";
+                command.CommandType = CommandType.StoredProcedure;
+                TransitDataBackend.Logging("Data Uploader: Renaming Slave Tables...", true);
+                command.ExecuteReader();
+            }
         }
         public void DropSlaveTables(string tableName)
         {
-            databaseConnection.Open();
-            command.CommandText = "drop_slave_tables";
-            command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.AddWithValue("@table_name", tableName);
-            TransitDataBackend.Logging("Data Uploader: Dropping Slave Tables..." + tableName, true);
-            command.ExecuteReader();
-            command.Parameters.Clear();
-            databaseConnection.Close();
+            using (databaseConnection)
+            {
+                databaseConnection.Open();
+                command.Parameters.Clear();
+                command.CommandText = "drop_slave_tables";
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@table_name", tableName);
+                TransitDataBackend.Logging("Data Uploader: Dropping Slave Tables..." + tableName, true);
+                command.ExecuteReader();
+                command.Parameters.Clear();
+            }
 
         }
         public void RenameSlaveIndexes()
         {
-            databaseConnection.Open();
-            command.CommandText = "rename_slave_indexes";
-            command.CommandType = CommandType.StoredProcedure;
-            TransitDataBackend.Logging("Data Uploader: Renaming Slave Indexes...", true);
-            command.ExecuteReader();
-            databaseConnection.Close();
+            using (databaseConnection)
+            {
+                databaseConnection.Open();
+                command.Parameters.Clear();
+                command.CommandText = "rename_slave_indexes";
+                command.CommandType = CommandType.StoredProcedure;
+                TransitDataBackend.Logging("Data Uploader: Renaming Slave Indexes...", true);
+                command.ExecuteReader();
+            }
         }
         public void CreateIndexes(string tableName)
         {
-            databaseConnection.Open();
-            command.CommandText = "create_indexes";
-            command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.AddWithValue("table_name", tableName);
-            TransitDataBackend.Logging("Data Uploader: Creating Slave Indexes..." + tableName, true);
-            command.ExecuteReader();
-            command.Parameters.Clear();
-            databaseConnection.Close();
+            using (databaseConnection2)
+            {
+                databaseConnection2.Open();
+                command2.Parameters.Clear();
+                command2.CommandText = "create_indexes";
+                command2.CommandType = CommandType.StoredProcedure;
+                command2.Parameters.AddWithValue("table_name", tableName);
+                TransitDataBackend.Logging("Data Uploader: Creating Slave Indexes..." + tableName, true);
+                command2.ExecuteReader();
+                command2.Parameters.Clear();
+            }
         }
         public void LoadData(bool detailedLogging, string fileToUpload)
         {
@@ -160,7 +163,7 @@ namespace TransitDataBackend
 
 
             int i = 1;
-            while (i < 4)
+            while (i < 2)
             {
                 TransitDataBackend.Logging("Data Uploader: Try Number: " + i.ToString(), true);
 
@@ -264,7 +267,7 @@ namespace TransitDataBackend
                     Console.Out.WriteLine("Data Uploader: Parent Error message: {0}", ex.Message);
                     //try while loop again
                     i++;
-                    if (i == 4)
+                    if (i == 2)
                     {
                         TransitDataBackend.Logging("Data Uploader: Sending Email Notification", true);
                         MailMessage objeto_mail = new MailMessage();

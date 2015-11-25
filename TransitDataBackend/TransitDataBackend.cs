@@ -14,7 +14,7 @@ namespace TransitDataBackend
         //Parsing Program Arguments
         static bool detailedLogging = true;
         static bool downloadRemoteFiles = false;
-        static string fileToUpload = "shapes";
+        static string fileToUpload = "calendar";
 
         static void Main(string[] args)
         {
@@ -66,19 +66,46 @@ namespace TransitDataBackend
                 {
                     detailedLogging = true;
                 }
-            }
 
-            if (args.Length > 1)
-            {
-                if (args[1].ToLower().Equals("skipdownload"))
+                if (args.Length > 1)
                 {
-                    downloadRemoteFiles = false;
+                    if (args[1].ToLower().Equals("skipdownload"))
+                    {
+                        downloadRemoteFiles = false;
+                    }
+                }
+
+                if (args.Length > 2)
+                {
+                    fileToUpload = args[2];
                 }
             }
-
-            if (args.Length > 2)
+            else
             {
-                fileToUpload = args[2];
+                using (StreamReader argumentStream = new StreamReader(@"D:\home\site\wwwroot\google_transit\arguments.txt"))
+                {
+                    string argumentString = argumentStream.ReadToEnd();
+                    string[] argumentStreamArgumentArray = argumentString.Split(new Char[] { ' ', '\n' });
+
+                    if (argumentStreamArgumentArray[0].ToLower().Equals("verbose"))
+                    {
+                        detailedLogging = true;
+                    }
+
+                    if (argumentStreamArgumentArray.Length > 1)
+                    {
+                        if (argumentStreamArgumentArray[1].ToLower().Equals("skipdownload"))
+                        {
+                            downloadRemoteFiles = false;
+                        }
+                    }
+
+                    if (argumentStreamArgumentArray.Length > 2)
+                    {
+                        fileToUpload = argumentStreamArgumentArray[2];
+                    }
+
+                }
             }
         }
 
