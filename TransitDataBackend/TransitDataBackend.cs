@@ -15,6 +15,7 @@ namespace TransitDataBackend
         static bool detailedLogging = true;
         static bool downloadRemoteFiles = false;
         static string fileToUpload = "calendar";
+        static int numberOfUploadTries = 1;
 
         static void Main(string[] args)
         {
@@ -47,7 +48,7 @@ namespace TransitDataBackend
             TransitDataBackend.Logging("Starting Data Uploader", true);
             //now upload
             var dataUploader = new DataUploader(detailedLogging);
-            dataUploader.LoadData(detailedLogging, fileToUpload);
+            dataUploader.LoadData(detailedLogging, fileToUpload, numberOfUploadTries);
             
         }
         public static void Logging(string log, bool verbose)
@@ -79,30 +80,46 @@ namespace TransitDataBackend
                 {
                     fileToUpload = args[2];
                 }
+
+                if (args.Length > 3)
+                {
+                    if (!int.TryParse(args[3],out numberOfUploadTries))
+                    {
+                        numberOfUploadTries = 1;
+                    }
+                }
             }
             else
             {
                 using (StreamReader argumentStream = new StreamReader(@"D:\home\site\wwwroot\google_transit\arguments.txt"))
                 {
                     string argumentString = argumentStream.ReadToEnd();
-                    string[] argumentStreamArgumentArray = argumentString.Split(new Char[] { ' ', '\n' });
+                    string[] argArray = argumentString.Split(new Char[] { ' ', '\n' });
 
-                    if (argumentStreamArgumentArray[0].ToLower().Equals("verbose"))
+                    if (argArray[0].ToLower().Equals("verbose"))
                     {
                         detailedLogging = true;
                     }
 
-                    if (argumentStreamArgumentArray.Length > 1)
+                    if (argArray.Length > 1)
                     {
-                        if (argumentStreamArgumentArray[1].ToLower().Equals("skipdownload"))
+                        if (argArray[1].ToLower().Equals("skipdownload"))
                         {
                             downloadRemoteFiles = false;
                         }
                     }
 
-                    if (argumentStreamArgumentArray.Length > 2)
+                    if (argArray.Length > 2)
                     {
-                        fileToUpload = argumentStreamArgumentArray[2];
+                        fileToUpload = argArray[2];
+                    }
+
+                    if (argArray.Length > 3)
+                    {
+                        if (!int.TryParse(argArray[3], out numberOfUploadTries))
+                        {
+                            numberOfUploadTries = 1;
+                        }
                     }
 
                 }

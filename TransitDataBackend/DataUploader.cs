@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Data.SqlClient;
 using System.Data;
 using System.Net.Mail;
+using System.Threading;
 
 namespace TransitDataBackend
 {
@@ -18,14 +19,9 @@ namespace TransitDataBackend
         {
             standardOutputStringBuilder = new StringBuilder(); //add this, you may also need to add using System.Text on top
             errorOutputStringBuilder = new StringBuilder(); //add this, you may also need to add using System.Text on top
-            string connectionString = @"Data Source = ffldfgjjcg.database.windows.net; Initial Catalog = metrotransit_db; Persist Security Info = True; User ID = metrotransitadmin; Password = Fyym4jzG9$5?; Timeout = 300";
-            string connectionString2 = @"Data Source = ffldfgjjcg.database.windows.net; Initial Catalog = metrotransit_db; Persist Security Info = True; User ID = metrotransitadmin; Password = Fyym4jzG9$5?";
-            databaseConnection = new SqlConnection(connectionString);
-            databaseConnection2 = new SqlConnection(connectionString2);
-            command = new SqlCommand();
-            command2 = new SqlCommand();
-            command.Connection = databaseConnection;
-            command2.Connection = databaseConnection2;
+            //string connectionString = @"Data Source = ffldfgjjcg.database.windows.net; Initial Catalog = metrotransit_db; Persist Security Info = True; User ID = metrotransitadmin; Password = Fyym4jzG9$5?; Timeout = 300";
+            //string connectionString2 = @"Data Source = ffldfgjjcg.database.windows.net; Initial Catalog = metrotransit_db; Persist Security Info = True; User ID = metrotransitadmin; Password = Fyym4jzG9$5?";
+            //databaseConnection = new SqlConnection(connectionString);
 
         }
 
@@ -33,17 +29,17 @@ namespace TransitDataBackend
         StringBuilder standardOutputStringBuilder { get; set; }
         StringBuilder errorOutputStringBuilder { get; set; }
         SqlConnection databaseConnection { get; set; }
-        SqlConnection databaseConnection2 { get; set; }
-        SqlCommand command { get; set; }
-        SqlCommand command2 { get; set; }
+        SqlCommand command = new SqlCommand();
+        string connectionString = @"Data Source = ffldfgjjcg.database.windows.net; Initial Catalog = metrotransit_db; Persist Security Info = True; User ID = metrotransitadmin; Password = Fyym4jzG9$5?; Timeout = 300";
 
         //functions
         public void updateDateTime()
         {
-            using (databaseConnection)
+            string myDateTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
+            using (SqlConnection databaseConnection = new SqlConnection(connectionString))
             {
-                string myDateTime = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
                 databaseConnection.Open();
+                command.Connection = databaseConnection;
                 command.Parameters.Clear();
                 TransitDataBackend.Logging(String.Format("All files finished uploadig at {0}", myDateTime.ToString()), true);
                 command.CommandType = CommandType.Text;
@@ -55,9 +51,10 @@ namespace TransitDataBackend
         }
         public void CreateDirectionTable()
         {
-            using (databaseConnection)
+            using (SqlConnection databaseConnection = new SqlConnection(connectionString))
             {
                 databaseConnection.Open();
+                command.Connection = databaseConnection;
                 command.Parameters.Clear();
                 TransitDataBackend.Logging("Creating Directions Table", true);
                 command.CommandType = CommandType.Text;
@@ -72,20 +69,21 @@ namespace TransitDataBackend
                                     when 'Northbound' then 'N' 
                                     else 'O' 
                                     end as direction_short 
-                                    from trips_slave 
+                                    from trips_slave
                                     group by route_id, substring(trip_headsign, 1, iif(charindex(' ', trip_headsign) = 0, len(trip_headsign), (charindex(' ', trip_headsign) - 1))) ";
                 command.ExecuteNonQuery();
             }
         }
         public void CreateSlaveTables(string tableName)
         {
-            using (databaseConnection)
+            using (SqlConnection databaseConnection = new SqlConnection(connectionString))
             {
                 databaseConnection.Open();
+                command.Connection = databaseConnection;
                 command.Parameters.Clear();
                 command.CommandText = "create_slave_tables";
                 command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("table_name", tableName);
+                command.Parameters.AddWithValue("@table_name", tableName);
                 TransitDataBackend.Logging("Data Uploader: Creating Slave Tables..." + tableName, true);
                 command.ExecuteReader();
                 command.Parameters.Clear();
@@ -93,9 +91,10 @@ namespace TransitDataBackend
         }
         public void RenameSlaveTables()
         {
-            using (databaseConnection)
+            using (SqlConnection databaseConnection = new SqlConnection(connectionString))
             {
                 databaseConnection.Open();
+                command.Connection = databaseConnection;
                 command.CommandText = "rename_slave_tables";
                 command.CommandType = CommandType.StoredProcedure;
                 TransitDataBackend.Logging("Data Uploader: Renaming Slave Tables...", true);
@@ -104,9 +103,10 @@ namespace TransitDataBackend
         }
         public void DropSlaveTables(string tableName)
         {
-            using (databaseConnection)
+            using (SqlConnection databaseConnection = new SqlConnection(connectionString))
             {
                 databaseConnection.Open();
+                command.Connection = databaseConnection;
                 command.Parameters.Clear();
                 command.CommandText = "drop_slave_tables";
                 command.CommandType = CommandType.StoredProcedure;
@@ -115,13 +115,14 @@ namespace TransitDataBackend
                 command.ExecuteReader();
                 command.Parameters.Clear();
             }
-
         }
+
         public void RenameSlaveIndexes()
         {
-            using (databaseConnection)
+            using (SqlConnection databaseConnection = new SqlConnection(connectionString))
             {
                 databaseConnection.Open();
+                command.Connection = databaseConnection;
                 command.Parameters.Clear();
                 command.CommandText = "rename_slave_indexes";
                 command.CommandType = CommandType.StoredProcedure;
@@ -131,19 +132,21 @@ namespace TransitDataBackend
         }
         public void CreateIndexes(string tableName)
         {
-            using (databaseConnection2)
+            using (SqlConnection databaseConnection = new SqlConnection(connectionString))
             {
-                databaseConnection2.Open();
-                command2.Parameters.Clear();
-                command2.CommandText = "create_indexes";
-                command2.CommandType = CommandType.StoredProcedure;
-                command2.Parameters.AddWithValue("table_name", tableName);
-                TransitDataBackend.Logging("Data Uploader: Creating Slave Indexes..." + tableName, true);
-                command2.ExecuteReader();
-                command2.Parameters.Clear();
+                databaseConnection.Open();
+                command.Connection = databaseConnection;
+                command.CommandTimeout = 7200;
+                command.Parameters.Clear();
+                command.CommandText = "create_indexes";
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@table_name", tableName);
+                Console.Out.WriteLine("Data Uploader: Creating Slave Indexes..." + tableName);
+                command.ExecuteReader();
+                command.Parameters.Clear();
             }
         }
-        public void LoadData(bool detailedLogging, string fileToUpload)
+        public void LoadData(bool detailedLogging, string fileToUpload, int numberOfTries)
         {
             List<string> fileArray = new List<string>();
 
@@ -230,15 +233,16 @@ namespace TransitDataBackend
                             }
                             //create slave indexes
                             this.CreateIndexes(fileName);
-                            //rename the slave tables
-                            this.RenameSlaveTables();
-                            //rename slave indexes
-                            this.RenameSlaveIndexes();
                             //create Directions Table only if fileName is trips
                             if (fileName.Equals("trips"))
                             {
                                 this.CreateDirectionTable();
                             }
+                            //rename the slave tables
+                            this.RenameSlaveTables();
+                            //rename slave indexes
+                            this.RenameSlaveIndexes();
+
                             standardOutputStringBuilder.Clear();
                             errorOutputStringBuilder.Clear();
                             TransitDataBackend.Logging(String.Format("{0} file finished uploading", fileName), true);
