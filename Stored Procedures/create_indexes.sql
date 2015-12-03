@@ -13,6 +13,13 @@ begin
 	
 	if @table_name in ('all','stop_times')
 	begin
+		alter table [dbo].[stop_times_slave] add  constraint [stop_times_slave_pk] primary key clustered 
+		(
+			[trip_id] asc,
+			[arrival_time] asc,
+			[stop_id] asc
+		)with (pad_index = off, statistics_norecompute = off, sort_in_tempdb = off, ignore_dup_key = off, online = off, allow_row_locks = on, allow_page_locks = on);
+
 		create index stop_times_slave_ix_01 on dbo.stop_times_slave(trip_id);
 	end;
 end;

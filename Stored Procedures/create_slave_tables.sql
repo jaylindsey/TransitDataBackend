@@ -83,10 +83,7 @@ begin
 			departure_time nvarchar(16) null,
 			stop_id int not null,
 			stop_sequence int null,
-			pickup_type int null,
-			drop_off_type int null,
-		 constraint stop_times_slave_pk primary key clustered (trip_id asc,arrival_time asc,stop_id asc)
-		 with (pad_index = off, statistics_norecompute = off, ignore_dup_key = off, allow_row_locks = on, allow_page_locks = on)
+			pickup_type int null
 		);
 	end;
 	

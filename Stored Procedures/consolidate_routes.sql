@@ -8,15 +8,17 @@ begin
 	--recreate it here
 	create table dbo.consolidated_routes (
 		rowid int identity (1,1),
-		route_id nvarchar(16) not null,
+		route_id int not null,
 		route_short_name nvarchar(16) null,
 		route_long_name nvarchar(256) null,
 		route_type int null,
 		route_url nvarchar(256) null,
 		agency_id int null,
-		constraint rowid primary key (route_id asc)
+		constraint consolidated_routes_pk primary key nonclustered (route_id asc)
 		with (pad_index = off, statistics_norecompute = off, ignore_dup_key = off, allow_row_locks = on, allow_page_locks = on)
 	);
+	
+	create clustered index consolidated_routes_ix_01 on dbo.consolidated_routes(rowid);
 	
 	--insert the consolidated routes here
 	--start from light rail routes first
